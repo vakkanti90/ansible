@@ -1,0 +1,64 @@
+---
+- name: Create the sonar user for running the Sonarqube services
+  user:
+     name: sonar
+     comment: System user for running Sonarqube
+
+- name: Download Sonarqube
+  get_url:
+     url: "https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-{{ sonar_version }}.zip"
+     dest: "/opt/sonarqube-{{ sonar_version }}.zip"
+
+- name: Extract Sonarqube
+  unarchive:
+     src: "/opt/sonarqube-{{ sonar_version }}.zip"
+     dest: "/opt"
+     copy: no
+     owner: sonar
+
+- name: Link this version of sonarqube as the server Sonarqube version
+  file:
+     src: "/opt/sonarqube-{{ sonar_version }}"
+     dest: "/opt/sonarqube"
+     state: link
+     owner: sonar
+
+- name: Configure Sonarqube
+  template:
+     src: templates/sonar.properties.j2
+     dest: /opt/sonarqube/conf/sonar.properties
+     owner: sonar
+     group: sonar
+     mode: 0644
+     backup: yes
+
+- name: Configure Sonarqube to run as the sonar user
+  lineinfile:
+     path: "/opt/sonarqube/bin/linux-x86-64/sonar.sh"
+     regexp: "RUN_AS_USER=sonar"
+     insertafter: "#RUN_AS_USER="
+     line: "RUN_AS_USER=sonar"
+
+- name: Copy the Sonarqube service configuration file
+  copy:
+     src: "files/sonarqube.service"
+     dest: "/etc/systemd/system/sonarqube.service"
+
+- name: Configure OS security limits for the sonar user
+  copy:
+     src: "files/sonarqube.limits"
+     dest: "/etc/security/limits.d/99-sonarqube.conf"
+
+- name: Configure kernel level limits for ElasticSearch
+  copy:
+     src: "files/sonarqube.sysctl"
+     dest: "/etc/sysctl.d/99-sonarqube.conf"
+
+- name: Enable the Sonarqube service
+  systemd:
+     state: started
+     enabled: yes
+     daemon_reload: yes
+     name: sonarqube
+
+

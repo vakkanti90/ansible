@@ -1,0 +1,5 @@
+---
+sonar_version: 7.9.1
+sonar_db_name: sonarqube
+sonar_db_user: sonar
+sonar_db_pass: test@sonar23

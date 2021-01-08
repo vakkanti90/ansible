@@ -1,0 +1,12 @@
+---
+  - hosts: sonar
+    become: true
+    vars_files: vars.yml
+    roles:
+    - install_java
+    - postgresql
+    - sonarqube
+       
+       
+
+    

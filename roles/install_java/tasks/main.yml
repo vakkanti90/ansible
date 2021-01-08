@@ -1,0 +1,9 @@
+---
+ - name: install the JDK
+   yum:
+     name: java-11-openjdk.x86_64
+     state: present
+   become: yes
+
+
+
